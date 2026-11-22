@@ -131,3 +131,85 @@ Netmiko_Lab/
 ├── .gitignore         # keeps .venv out of git
 └── README.md
 ```
+
+## Setup & Usage (Cisco DevNet Sandbox)
+
+### Prerequisites
+- Python 3.8+
+- Netmiko: `pip install netmiko`
+- A free [Cisco DevNet](https://developer.cisco.com/) account
+- A VPN client that supports AnyConnect-style VPNs (Cisco Secure Client or OpenConnect)
+
+### 1. Reserve the sandbox
+1. Log in to the DevNet Sandbox catalog and reserve **Cisco Modeling Labs (CML)**.
+2. Wait for the reservation to become active, then open the **Quick Access** tab
+   for the VPN address, VPN credentials and CML login.
+
+<img width="1278" height="891" alt="image" src="https://github.com/user-attachments/assets/16f7bc36-b436-49ad-a0fe-ef9dd4d67f62" />
+
+### 2. Connect to the VPN
+Connect using the VPN address (including the port) and credentials from the
+reservation. Confirm the lab is reachable:
+
+```bash
+ping 10.10.20.173
+```
+
+### 3. Open the lab
+Log in to the CML web UI and open `default-lab`. It includes two IOL-L2 XE
+switches:
+
+| Device | IP address   |
+|--------|--------------|
+| SW1    | 10.10.20.173 |
+| SW2    | 10.10.20.174 |
+
+Lab login: `cisco` / `cisco`.
+
+### 4. Enable SSH on the switches
+SSH is disabled by default. Open each switch console in CML and run:
+
+```
+conf t
+ ip domain name lab.local
+ crypto key generate rsa modulus 2048
+ ip ssh version 2
+ line vty 0 4
+  transport input ssh telnet
+  login local
+end
+```
+
+### 5. Run the script
+```bash
+python vlan_config.py
+```
+Enter the username, password, enable password, and the switch IPs
+(comma-separated), for example `10.10.20.173,10.10.20.174`.
+
+<img width="527" height="76" alt="image" src="https://github.com/user-attachments/assets/bad9107d-2328-4a3b-aa35-5bf249805fe7" />
+
+<img width="978" height="482" alt="image" src="https://github.com/user-attachments/assets/df738330-1c23-482e-b58d-73b16f7c872d" />
+
+### 6. Verify
+On each switch console:
+
+```
+show vlan brief
+```
+
+<img width="603" height="139" alt="image" src="https://github.com/user-attachments/assets/ede77a42-cda6-41c0-9bf3-a1ee9caf992d" />
+
+The VLAN names should now match the script (for example, `IT_Department`
+on VLAN 10).
+
+### 7. Clean up
+Disconnect the VPN and end the reservation from **Manage reservation**.
+Switch configuration is erased when the reservation ends.
+
+### Troubleshooting
+| Symptom | Likely cause / fix |
+|---|---|
+| `TCP connection to device failed` | VPN not connected, or SSH not enabled on the switch |
+| Authentication failure | Check username/password (`cisco` / `cisco`) |
+| SSH key exchange errors | Use `"device_type": "cisco_ios_telnet"` in the script |
