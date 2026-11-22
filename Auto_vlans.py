@@ -14,8 +14,6 @@ config_commands = [
     "name IT_Department",
     "vlan 20",
     "name HR_Department",
-    "vlan 30",
-    "name Engineering",
 ]
 
 for host in HOSTS:
@@ -36,5 +34,6 @@ for host in HOSTS:
             print(output)
             net_connect.save_config()
             print(f"VLANs added and config saved on {host}\n")
+            print(net_connect.send_command("show vlan brief"))
     except (NetmikoTimeoutException, NetmikoAuthenticationException) as e:
         print(f"Failed to connect to {host}: {e}")
